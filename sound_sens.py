@@ -52,42 +52,22 @@ def writeSound(x, y):
 
 def waves(x, y):
     l = int(44100*0.4) # each note lasts 0.4 second
-    #x = float(x) + 90;
-    freq_x = map2(-90, 90, x, 200, 600);
-    amp_y = map2(-90, 90, y, 0.5, 1.5)
-    print "freq: " , freq_x , "   amp: " , amp_y
-    return damped_wave(frequency=freq_x, amplitude=amp_y, length=int(l/20))
+
+    amp = map(-90, 90, x, 2, 0.2)
+    freq = map(-90, 90, y, 1100, 100);
+    print "freq: " , freq , "   amp: " , amp
+    return damped_wave(frequency=freq, framerate=44100, amplitude=amp, length=int(l/20))
+    #return sine_wave(frequency=freq, framerate=44100, amplitude=amp)
     #return damped_wave(frequency = int(x/10), amplitude = int(y*0.1), length=int(l/4))
 
+def map(in_min, in_max, x, out_min, out_max):
+    return (x - in_min) * (out_max - out_min ) / (in_max - in_min) + out_min;
 
-def map(val_min, val_max, val, in_min, in_max):
-    total_in = float(in_max) - float(in_min)
-    #print 'total in  ', total_in
-    total_val = float(val_max) - float(val_min)
-    #print 'total val  ', total_val
-    if (val < 0):
-        print abs(float(val) - float(val_min)) 
-        return abs(float(val) - float(val_min)) * total_in/total_val
-    else:
-        print (float(val) - float(val_min))
-        return (float(val) - float(val_min)) * total_in/total_val 
-
-def map2(in_min, in_max, x, out_min, out_max):
-    return (float(x) -float(in_min))*(float(out_max)-float(out_min)) / (float(in_max)-float(in_min) )+ float(out_min);
-        
-
-def mapFrequency(freq):
-    test = -90 - freq
-    test2 = test * test
-    return test
-
-def mapAccel(accel):
-    return accel
-
-def visualisation(x_angle, y_angle, cube):
+def visualisation(x_angle, y_angle, cube, color):
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
 
     glColor((1.,1.,1.))
+
     glLineWidth(1)
     glBegin(GL_LINES)
 
@@ -127,6 +107,12 @@ def visualisation(x_angle, y_angle, cube):
     glPushMatrix()
     glRotate(float(x_angle), 1, 0, 0)
     glRotate(-float(y_angle), 0, 0, 1)
+
+    if (color):
+        cube.setColor((1., 0., 0.))
+    else:
+        cube.setColor((1., 1., 1.))
+
     cube.render()
     glPopMatrix()
     pygame.display.flip()
@@ -140,17 +126,42 @@ def run():
     #clock = pygame.time.Clock()
     cube = Cube((0.0, 0.0, 0.0), (.5, .5, .7))
 
+    x_good_angle = 0
+    y_good_angle = 0
+
+    x_old_accel = 0
+    y_old_accel = 0
+
     while True:
         values = read_values()
-        print values
-        x_angle = values[0]
-        y_angle = values[1]
 
-        #other data ...
-        visualisation(x_angle, y_angle, cube)
-        writeSound(x_angle, y_angle)
+        x_angle = float(values[0])
+        y_angle = float(values[1])
+        x_accel = float(values[2])
+        y_accel = float(values[3])
+        z_accel = float(values[4])
+        x_gyro  = float(values[5])
+        y_gyro  = float(values[6])
+        z_gyro  = float(values[7])
+
+        #print values
+        #print "x: " , x_angles[-1] , ";  y: " , y_angles[-1]
+        #print "x: " , x_accel , ";  y: " , y_accel ,  ";  z: " , z_accel
 
 
+        if (abs(x_accel) < 1.2 and abs(y_accel) < 1.2 and abs(z_accel) < 1.2 ):
+            x_good_angle = x_angle
+            y_good_angle = y_angle
+            visualisation(x_angle, y_angle, cube, True)
+        else:
+            #visualisation(x_angle, y_angle, cube, False)
+            #if (x_accel < -1.4 or y_accel > 1.4):
+            if (((abs(x_accel) - abs(x_old_accel)) + ((abs(y_accel) - abs(y_old_accel))) / 2) > 0.5 ):
+                print "x: " , x_accel , ";  y: " , y_accel , ";   x rot: " , x_angle , "  ;   y rot: " , y_angle
+                writeSound(x_good_angle, y_good_angle)
+        
+        x_old_accel = x_accel
+        y_old_accel = y_accel
 
 
 class Cube(object):
@@ -184,6 +195,9 @@ class Cube(object):
                        (0, 4, 7, 3),  # left
                        (3, 2, 6, 7),  # top
                        (0, 1, 5, 4) ]  # bottom
+
+    def setColor(self, color):
+        self.color = color
 
     def render(self):
         then = pygame.time.get_ticks()
