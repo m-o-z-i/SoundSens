@@ -92,7 +92,8 @@ def waves(x, y):
 def map(in_min, in_max, x, out_min, out_max):
     return (x - in_min) * (out_max - out_min ) / (in_max - in_min) + out_min;
 
-def visualisation(x_angle, y_angle, cube, color):
+def visualisation(x_angle_filter, y_angle_filter, x_angle_accel, y_angle_accel, x_angle_gyro, y_angle_gyro, cube, cube_accel, cube_gyro, color):
+    print "filter: [", x_angle_filter, ", ", y_angle_filter,"];  accel: [", x_angle_accel, ", ", y_angle_accel, "];  gyro" , x_angle_gyro, ", " , y_angle_gyro , "]"
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
 
     glColor((1.,1.,1.))
@@ -133,9 +134,38 @@ def visualisation(x_angle, y_angle, cube, color):
         glVertex3f(2, y/10., -1)
     
     glEnd()
+
+    # accel cube
     glPushMatrix()
-    glRotate(float(x_angle), 1, 0, 0)
-    glRotate(-float(y_angle), 0, 0, 1)
+    glTranslate(-1, 0, 0)
+
+    glRotate(float(x_angle_accel), 1, 0, 0)
+    glRotate(-float(y_angle_accel), 0, 0, 1)
+
+    cube_accel.setColor((0., 1., 0.))
+
+    cube_accel.render() 
+    glTranslate(1, 0, 0)  
+    glPopMatrix()
+    
+
+    # gyro cube
+    glPushMatrix()
+
+    glRotate(float(x_angle_gyro), 1, 0, 0)
+    glRotate(-float(y_angle_gyro), 0, 0, 1)
+
+    cube_gyro.setColor((0., 0., 1.))
+
+    cube_gyro.render()   
+    glPopMatrix()
+
+
+    # filter cube
+    glPushMatrix()
+    glTranslate(1, 0, 0)
+    glRotate(float(x_angle_filter), 1, 0, 0)
+    glRotate(-float(y_angle_filter), 0, 0, 1)
 
     if (color):
         cube.setColor((1., 0., 0.))
@@ -143,7 +173,9 @@ def visualisation(x_angle, y_angle, cube, color):
         cube.setColor((1., 1., 1.))
 
     cube.render()
+    glTranslate(-1, 0, 0)
     glPopMatrix()
+
     pygame.display.flip()
 
 
@@ -154,6 +186,8 @@ def run():
     init()
     #clock = pygame.time.Clock()
     cube = Cube((0.0, 0.0, 0.0), (.5, .5, .7))
+    cube_accel = Cube((0.0, 0.0, 0.0), (.5, .5, .7))
+    cube_gyro = Cube((0.0, 0.0, 0.0), (.5, .5, .7))
 
     x_good_angle = 0
     y_good_angle = 0
@@ -164,30 +198,31 @@ def run():
     while True:
         values = read_values()
 
-        x_angle = float(values[0])
-        y_angle = float(values[1])
-        x_accel = float(values[2])
-        y_accel = float(values[3])
-        z_accel = float(values[4])
-        x_gyro  = float(values[5])
-        y_gyro  = float(values[6])
-        z_gyro  = float(values[7])
+        rot_filter_x = float(values[0])
+        rot_filter_y = float(values[1])
+        rot_accel_x  = float(values[2])
+        rot_accel_y  = float(values[3])
+        rot_gyro_x   = float(values[4])
+        rot_gyro_y   = float(values[5])
+        x_accel      = float(values[6])
+        y_accel      = float(values[7])
+        z_accel      = float(values[8])
 
         #print values
-        #print "x: " , x_angles[-1] , ";  y: " , y_angles[-1]
+        #print "x: " , x_filters[-1] , ";  y: " , y_angles[-1]
         #print "x: " , x_accel , ";  y: " , y_accel ,  ";  z: " , z_accel
 
 
         if (abs(x_accel) < 1.5 and abs(y_accel) < 1.5 and abs(z_accel) < 1.5 ):
-            x_good_angle = x_angle
-            y_good_angle = y_angle
-            visualisation(x_angle, y_angle, cube, True)
+            x_good_angle = rot_filter_x
+            y_good_angle = rot_filter_y
         else:
-            visualisation(x_angle, y_angle, cube, False)
             if (((abs(x_accel) - abs(x_old_accel)) + ((abs(y_accel) - abs(y_old_accel))) / 2) > 0.5 ):
-                #print "x: " , x_accel , ";  y: " , y_accel , ";   x rot: " , x_angle , "  ;   y rot: " , y_angle
-                writeSound(x_good_angle, y_good_angle)
-                #pass
+                #print "x: " , x_accel , ";  y: " , y_accel , ";   x rot: " , x_angle , "  ;   y rot: " , rot_filter_y
+                writeSound(rot_filter_x, rot_filter_y)
+
+        visualisation(rot_filter_x, rot_filter_y, rot_accel_x, rot_accel_y, rot_gyro_x, rot_gyro_y, cube, cube_accel, cube_gyro, True)
+
         x_old_accel = x_accel
         y_old_accel = y_accel
 
@@ -201,14 +236,14 @@ class Cube(object):
     # Cube information
     num_faces = 6
 
-    vertices = [ (-1.0, -0.05, 0.5),
-                 (1.0, -0.05, 0.5),
-                 (1.0, 0.05, 0.5),
-                 (-1.0, 0.05, 0.5),
-                 (-1.0, -0.05, -0.5),
-                 (1.0, -0.05, -0.5),
-                 (1.0, 0.05, -0.5),
-                 (-1.0, 0.05, -0.5) ]
+    vertices = [ (-0.3, -0.05, 0.5),
+                 (0.3, -0.05, 0.5),
+                 (0.3, 0.05, 0.5),
+                 (-0.3, 0.05, 0.5),
+                 (-0.3, -0.05, -0.5),
+                 (0.3, -0.05, -0.5),
+                 (0.3, 0.05, -0.5),
+                 (-0.3, 0.05, -0.5) ]
 
     normals = [ (0.0, 0.0, +1.0),  # front
                 (0.0, 0.0, -1.0),  # back
@@ -224,6 +259,15 @@ class Cube(object):
                        (3, 2, 6, 7),  # top
                        (0, 1, 5, 4) ]  # bottom
 
+    verticesStick = [ (-0.04, -0.5, 0.04),
+                      (0.04, -0.5, 0.04),
+                      (0.04, 0.0, 0.04),
+                      (-0.04, 0.0, 0.04),
+                      (-0.04, -0.5, -0.04),
+                      (0.04, -0.5, -0.04),
+                      (0.04, 0.0, -0.04),
+                      (-0.04, 0.0, -0.04) ]
+
     def setColor(self, color):
         self.color = color
 
@@ -232,10 +276,10 @@ class Cube(object):
         glColor(self.color)
 
         vertices = self.vertices
+        verticesStick = self.verticesStick
 
         # Draw all 6 faces of the cube
         glBegin(GL_QUADS)
-
         for face_no in xrange(self.num_faces):
             glNormal3dv(self.normals[face_no])
             v1, v2, v3, v4 = self.vertex_indices[face_no]
@@ -243,6 +287,17 @@ class Cube(object):
             glVertex(vertices[v2])
             glVertex(vertices[v3])
             glVertex(vertices[v4])
+        glEnd()
+        
+        # draw cylinder
+        glBegin(GL_QUADS)
+        for face_no in xrange(self.num_faces):
+            glNormal3dv(self.normals[face_no])
+            v1, v2, v3, v4 = self.vertex_indices[face_no]
+            glVertex(verticesStick[v1])
+            glVertex(verticesStick[v2])
+            glVertex(verticesStick[v3])
+            glVertex(verticesStick[v4])
         glEnd()
 
 if __name__ == "__main__":
