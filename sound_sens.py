@@ -44,9 +44,8 @@ def read_values():
 
 def writeSound(x, y):
     channels = ((waves(x,y),), (waves(x,y),))
-    samples = compute_samples(channels, None)
-    #music = write_wavefile2('test.wav', samples, None)
-    write_wavefile3('test.wav', samples, None)
+    samples = compute_samples(channels, 2000)
+    write_wavefile('test.wav', samples, None)
     command = 'aplay ./test.wav'
     os.system(command)
 

@@ -70,25 +70,8 @@ def compute_samples(channels, nsamples=None):
     '''
     return islice(izip(*(imap(sum, izip(*channel)) for channel in channels)), nsamples)
 
+
 def write_wavefile(f, samples, nframes=None, nchannels=2, sampwidth=2, framerate=44100, bufsize=2048):
-    "Write samples to a wavefile."
-    if nframes is None:
-        nframes = -1
-
-    w = wave.open(f, 'w')
-    w.setparams((nchannels, sampwidth, framerate, nframes, 'NONE', 'not compressed'))
-
-    max_amplitude = float(int((2 ** (sampwidth * 8)) / 2) - 1)
-    
-    # split the samples into chunks (to reduce memory consumption and improve performance)
-    for chunk in grouper(bufsize, samples):
-        frames = ''.join(''.join(struct.pack('h', int(max_amplitude * sample)) for sample in channels) for channels in chunk if channels is not None)
-        w.writeframesraw(frames)
-        break
-    w.close()
-    #return f
-
-def write_wavefile3(f, samples, nframes=None, nchannels=2, sampwidth=2, framerate=44100, bufsize=2048):
     "Write samples to a wavefile."
     if nframes is None:
         nframes = -1
@@ -106,31 +89,8 @@ def write_wavefile3(f, samples, nframes=None, nchannels=2, sampwidth=2, framerat
                     frames1 = frames1 + ''.join(struct.pack('h', int(max_amplitude * sample)))
             frames2 = ''.join(frames1)
         w.writeframesraw(frames2)
-        break
     w.close()
-    #return f
 
-def write_wavefile2(f, samples, nframes=None, nchannels=2, sampwidth=2, framerate=44100, bufsize=2048):
-    "Write samples to a wavefile."
-    if nframes is None:
-        nframes = -1
-
-    sound = wave.open(f, 'w')
-    sound.setparams((nchannels, sampwidth, framerate, nframes, 'NONE', 'not compressed'))
-    max_amplitude = float(int((2 ** (sampwidth * 8)) / 2) - 1)
-
-    values = []
-
-    for i in range(0, int(framerate * 0.1)):
-        #val = max_amplitude * sample
-        packed_value = struct.pack('h', int(max_amplitude))
-        values.append(packed_value)
-
-    value_str = ''.join(values)
-    sound.writeframes(value_str)
-
-    sound.close()
-    return value_str
 
 def write_pcm(f, samples, sampwidth=2, framerate=44100, bufsize=2048):
     "Write samples as raw PCM data."
