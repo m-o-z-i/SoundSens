@@ -43,19 +43,49 @@ def read_values():
     return myfile.split(" ")
 
 def writeSound(x, y):
-    channels = ((waves(x,y),), (waves(x,y),))
-    samples = compute_samples(channels, 2000)
-    write_wavefile('test.wav', samples, None)
+    channels = ((violin(x,y),), (violin(x,y),))
+    samples = compute_samples(channels, 44100 * 0.4)
+
+    write_wavefile('test.wav', samples, 44100 * 0.4, nchannels=2)
     command = 'aplay ./test.wav'
     os.system(command)
 
-def waves(x, y):
+def violin(x, y):
+    l = int(44100*0.4) # each note lasts 0.4 second
+    amp = map(-90, 90, x, 2, 0.2)
+    freq = map(-90, 90, y, 800, 350)
+    
+    return (chain(damped_wave(frequency=0.8 * freq, framerate=44100, amplitude=0.76*amp, length= l * 0.1),
+                   damped_wave(frequency=1.3 * freq, framerate=44100, amplitude=0.44*amp, length=l * 0.1),
+                   damped_wave(frequency=2.5 * freq, framerate=44100, amplitude=0.32*amp, length=l * 0.1),
+                   damped_wave(frequency=7.0 * freq, framerate=44100, amplitude=0.16*amp, length=l * 0.1),
+                   damped_wave(frequency=1.2 * freq, framerate=44100, amplitude=1.0*amp, length=l * 0.1),
+                   damped_wave(frequency=2.0 * freq, framerate=44100, amplitude=0.44*amp, length=l * 0.1),
+                   damped_wave(frequency=3.2 * freq, framerate=44100, amplitude=0.32*amp, length=l * 0.1)))
+
+def damped(x, y):
     l = int(44100*0.4) # each note lasts 0.4 second
 
     amp = map(-90, 90, x, 2, 0.2)
-    freq = map(-90, 90, y, 1100, 100);
-    print "freq: " , freq , "   amp: " , amp
-    return damped_wave(frequency=freq, framerate=44100, amplitude=amp, length=int(l/20))
+    freq = map(-90, 90, y, 750, 320)
+    
+    return islice( damped_wave(frequency=freq, framerate=44100, amplitude=amp, length=int(l/4)), l )
+    
+def damped2(x, y):
+    l = int(44100*0.4) # each note lasts 0.4 second
+
+    amp = map(-90, 90, x, 1, 0.01)
+    freq = map(-90, 90, y, 450, 250)
+    
+    return islice( damped_wave(frequency=freq, framerate=44100, amplitude=amp, length=int(l/4)), l )
+
+    
+def waves(x, y):
+    l = int(44100*0.4) # each note lasts 0.4 second
+    amp = map(-90, 90, x, 2, 0.2)
+    freq = map(-90, 90, y, 650, 300)
+    
+    return damped_wave(frequency=freq, framerate=44100, amplitude=amp, length=int(l/4))
     #return sine_wave(frequency=freq, framerate=44100, amplitude=amp)
     #return damped_wave(frequency = int(x/10), amplitude = int(y*0.1), length=int(l/4))
 
@@ -156,8 +186,8 @@ def run():
             visualisation(x_angle, y_angle, cube, False)
             if (((abs(x_accel) - abs(x_old_accel)) + ((abs(y_accel) - abs(y_old_accel))) / 2) > 0.5 ):
                 #print "x: " , x_accel , ";  y: " , y_accel , ";   x rot: " , x_angle , "  ;   y rot: " , y_angle
-                writeSound(x_good_angle, y_good_angle)
-        
+                pass
+        writeSound(x_good_angle, y_good_angle)
         x_old_accel = x_accel
         y_old_accel = y_accel
 
