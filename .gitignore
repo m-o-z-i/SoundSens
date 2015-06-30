@@ -1,5 +1,6 @@
 #temp files
-*.*~
+*~
+*.pyc
 
 #music files
 *.wav
