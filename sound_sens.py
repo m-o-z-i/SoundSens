@@ -148,15 +148,14 @@ def run():
         #print "x: " , x_accel , ";  y: " , y_accel ,  ";  z: " , z_accel
 
 
-        if (abs(x_accel) < 1.2 and abs(y_accel) < 1.2 and abs(z_accel) < 1.2 ):
+        if (abs(x_accel) < 1.5 and abs(y_accel) < 1.5 and abs(z_accel) < 1.5 ):
             x_good_angle = x_angle
             y_good_angle = y_angle
             visualisation(x_angle, y_angle, cube, True)
         else:
-            #visualisation(x_angle, y_angle, cube, False)
-            #if (x_accel < -1.4 or y_accel > 1.4):
+            visualisation(x_angle, y_angle, cube, False)
             if (((abs(x_accel) - abs(x_old_accel)) + ((abs(y_accel) - abs(y_old_accel))) / 2) > 0.5 ):
-                print "x: " , x_accel , ";  y: " , y_accel , ";   x rot: " , x_angle , "  ;   y rot: " , y_angle
+                #print "x: " , x_accel , ";  y: " , y_accel , ";   x rot: " , x_angle , "  ;   y rot: " , y_angle
                 writeSound(x_good_angle, y_good_angle)
         
         x_old_accel = x_accel
