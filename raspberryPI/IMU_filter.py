@@ -60,13 +60,20 @@ def twos_compliment(val):
 def dist(a, b):
     return math.sqrt((a * a) + (b * b))
 
+#roll
 def get_x_rotation(x,y,z):
+    radians = math.atan2(x, dist(y,z))
+    return math.degrees(radians)
+
+#pitch
+def get_y_rotation(x,y,z):
     radians = math.atan2(y, dist(x,z))
     return math.degrees(radians)
 
-def get_y_rotation(x,y,z):
-    radians = math.atan2(x, dist(y,z))
-    return -math.degrees(radians)
+#not same as yaw... is not possible to compute from accelerometer
+def get_z_rotation(x,y,z):
+    radians = math.atan2(dist(x,y), z)
+    return math.degrees(radians)
 
 def initComplementaryFilter():
     print "init complementary filter.." 
@@ -74,41 +81,12 @@ def initComplementaryFilter():
     (gyro_scaled_x, gyro_scaled_y, gyro_scaled_z, accel_scaled_x, accel_scaled_y, accel_scaled_z) = read_all()
     last_x = get_x_rotation(accel_scaled_x, accel_scaled_y, accel_scaled_z)
     last_y = get_y_rotation(accel_scaled_x, accel_scaled_y, accel_scaled_z)
-    gyro_offset_x = gyro_scaled_x 
-    gyro_offset_y = gyro_scaled_y
-    gyro_offset_z = gyro_scaled_z
-    gyro_total_x = (last_x) - gyro_offset_x
-    gyro_total_y = (last_y) - gyro_offset_y
-    gyro_total_z = (last_z) - gyro_offset_z
-
-def complementaryFilter(gyro_scaled_x, gyro_scaled_y, gyro_scaled_z, accel_scaled_x, accel_scaled_y, accel_scaled_z, deltaTime):
-    
-    global gyro_total_x, gyro_total_y, gyro_total_z, last_x, last_y, last_z
- 
-    gyro_scaled_x += X_CALIB
-    gyro_scaled_y += Y_CALIB
-    gyro_scaled_z += Z_CALIB
-
-
-    gyro_scaled_x -= gyro_offset_x
-    gyro_scaled_y -= gyro_offset_y
-    gyro_scaled_z -= gyro_offset_z   
-            
-    # accumulate gyro data
-    gyro_delta_x = (gyro_scaled_x * deltaTime)
-    gyro_delta_y = (gyro_scaled_y * deltaTime)
-    gyro_delta_z = (gyro_scaled_z * deltaTime)
-
-    gyro_total_x += gyro_delta_x
-    gyro_total_y += gyro_delta_y
-    gyro_total_z += gyro_delta_z
-    
-    # get accelometer rotation
-    rotation_accel_x = get_x_rotation(accel_scaled_x, accel_scaled_y, accel_scaled_z)
-    rotation_accel_y = get_y_rotation(accel_scaled_x, accel_scaled_y, accel_scaled_z)
-
-    last_x = K * (last_x + gyro_delta_x) + (K1 * rotation_accel_x)
-    last_y = K * (last_y + gyro_delta_y) + (K1 * rotation_accel_y)
+    #gyro_offset_x = gyro_scaled_x 
+    #gyro_offset_y = gyro_scaled_y
+    #gyro_offset_z = gyro_scaled_z
+    gyro_total_x = last_x
+    gyro_total_y = last_y
+    gyro_total_z = last_z
 
 
 id = 0
@@ -122,22 +100,23 @@ class index:
 	    # init complementary filter
             initComplementaryFilter()
 
-        deltaTime = time.time() - now
-        #print deltaTime
+    deltaTime = time.time() - now
+    #print deltaTime
 	now = time.time()
 
 	(gyro_scaled_x, gyro_scaled_y, gyro_scaled_z, accel_scaled_x, accel_scaled_y, accel_scaled_z) = read_all()
-        #time.sleep(time_diff - 0.005)
+    #time.sleep(time_diff - 0.005)
 	
-	gyro_scaled_x += X_CALIB
-        gyro_scaled_y += Y_CALIB
-        gyro_scaled_z += Z_CALIB   
-	    
+	#gyro_scaled_x += X_CALIB
+    #gyro_scaled_y += Y_CALIB
+    #gyro_scaled_z += Z_CALIB   
+	
 	# accumulate gyro data
 	gyro_delta_x = (gyro_scaled_x * deltaTime)
 	gyro_delta_y = (gyro_scaled_y * deltaTime)
 	gyro_delta_z = (gyro_scaled_z * deltaTime)
 	
+    # get total gyro angle
 	gyro_total_x += gyro_delta_x
 	gyro_total_y += gyro_delta_y
 	gyro_total_z += gyro_delta_z
@@ -146,6 +125,7 @@ class index:
 	rotation_accel_x = get_x_rotation(accel_scaled_x, accel_scaled_y, accel_scaled_z)
 	rotation_accel_y = get_y_rotation(accel_scaled_x, accel_scaled_y, accel_scaled_z)
 	
+    # complementary filter
 	last_x = K * (last_x + gyro_delta_x) + (K1 * rotation_accel_x)
 	last_y = K * (last_y + gyro_delta_y) + (K1 * rotation_accel_y)
 
