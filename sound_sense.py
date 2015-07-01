@@ -13,6 +13,11 @@ SCREEN_SIZE = (800, 600)
 SCALAR = .5
 SCALAR2 = 0.2
 
+#for gyro calibration
+gyro_calib_x = 0
+gyro_calib_y = 0
+gyro_calib_z = 0
+
 def resize(width, height):
     glViewport(0, 0, width, height)
     glMatrixMode(GL_PROJECTION)
@@ -184,6 +189,13 @@ def visualisation(x_angle_filter, y_angle_filter, x_angle_accel, y_angle_accel, 
 
     pygame.display.flip()
 
+def calibrateGyro(rot_gyro_x, rot_gyro_y, rot_gyro_z):
+    global gyro_calib_x, gyro_calib_y, gyro_calib_z
+
+    gyro_calib_x += rot_gyro_x
+    gyro_calib_y += rot_gyro_y
+    gyro_calib_z += rot_gyro_z
+
 
 def run():
     pygame.init()
@@ -201,7 +213,11 @@ def run():
     x_old_accel = 0
     y_old_accel = 0
 
+    i = 0
+
     while True:
+        i += 1
+
         values = read_values()
 
         rot_filter_x = float(values[0])
@@ -214,6 +230,13 @@ def run():
         x_accel      = float(values[7])
         y_accel      = float(values[8])
         z_accel      = float(values[9])
+        delta_gyro_x   = float(values[10])
+        delta_gyro_y   = float(values[11])
+        delta_gyro_z   = float(values[12])
+
+        #calibrateGyro(delta_gyro_x, delta_gyro_y, delta_gyro_z)
+        #print "gyro delta data [" , delta_gyro_x , ", " , delta_gyro_y , ", " , delta_gyro_z , "]"
+        #print "average drift: " , i , "  --> [" , gyro_calib_x/i , ", " , rot_gyro_y/i , ", " , rot_gyro_z/i , "]"
 
         #print values
         #print "x: " , x_filters[-1] , ";  y: " , y_angles[-1]
@@ -226,7 +249,7 @@ def run():
         else:
             if (((abs(x_accel) - abs(x_old_accel)) + ((abs(y_accel) - abs(y_old_accel))) / 2) > 0.5 ):
                 #print "x: " , x_accel , ";  y: " , y_accel , ";   x rot: " , x_angle , "  ;   y rot: " , rot_filter_y
-                writeSound(rot_filter_x, rot_filter_y)
+                writeSound(x_good_angle, y_good_angle)
 
         visualisation(rot_filter_x, rot_filter_y, rot_accel_x, rot_accel_y, rot_gyro_x, rot_gyro_y, rot_gyro_z, cube, cube_accel, cube_gyro, True)
 
