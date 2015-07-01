@@ -100,23 +100,23 @@ class index:
 	    # init complementary filter
             initComplementaryFilter()
 
-    deltaTime = time.time() - now
-    #print deltaTime
-	now = time.time()
+        deltaTime = time.time() - now
+        #print deltaTime
+        now = time.time()
 
 	(gyro_scaled_x, gyro_scaled_y, gyro_scaled_z, accel_scaled_x, accel_scaled_y, accel_scaled_z) = read_all()
-    #time.sleep(time_diff - 0.005)
+        #time.sleep(time_diff - 0.005)
 	
 	#gyro_scaled_x += X_CALIB
-    #gyro_scaled_y += Y_CALIB
-    #gyro_scaled_z += Z_CALIB   
+        #gyro_scaled_y += Y_CALIB
+        #gyro_scaled_z += Z_CALIB   
 	
 	# accumulate gyro data
 	gyro_delta_x = (gyro_scaled_x * deltaTime)
 	gyro_delta_y = (gyro_scaled_y * deltaTime)
 	gyro_delta_z = (gyro_scaled_z * deltaTime)
 	
-    # get total gyro angle
+        # get total gyro angle
 	gyro_total_x += gyro_delta_x
 	gyro_total_y += gyro_delta_y
 	gyro_total_z += gyro_delta_z
@@ -125,7 +125,7 @@ class index:
 	rotation_accel_x = get_x_rotation(accel_scaled_x, accel_scaled_y, accel_scaled_z)
 	rotation_accel_y = get_y_rotation(accel_scaled_x, accel_scaled_y, accel_scaled_z)
 	
-    # complementary filter
+        # complementary filter
 	last_x = K * (last_x + gyro_delta_x) + (K1 * rotation_accel_x)
 	last_y = K * (last_y + gyro_delta_y) + (K1 * rotation_accel_y)
 
