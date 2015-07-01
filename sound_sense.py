@@ -92,7 +92,7 @@ def waves(x, y):
 def map(in_min, in_max, x, out_min, out_max):
     return (x - in_min) * (out_max - out_min ) / (in_max - in_min) + out_min;
 
-def visualisation(x_angle_filter, y_angle_filter, x_angle_accel, y_angle_accel, x_angle_gyro, y_angle_gyro, cube, cube_accel, cube_gyro, color):
+def visualisation(x_angle_filter, y_angle_filter, x_angle_accel, y_angle_accel, x_angle_gyro, y_angle_gyro, z_angle_gyro, cube, cube_accel, cube_gyro, color):
     print "filter: [", x_angle_filter, ", ", y_angle_filter,"];  accel: [", x_angle_accel, ", ", y_angle_accel, "];  gyro" , x_angle_gyro, ", " , y_angle_gyro , "]"
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
 
@@ -141,6 +141,8 @@ def visualisation(x_angle_filter, y_angle_filter, x_angle_accel, y_angle_accel, 
 
     glRotate(float(x_angle_accel), 1, 0, 0)
     glRotate(-float(y_angle_accel), 0, 0, 1)
+    glRotate(float(z_angle_gyro), 0, 1, 0)
+
 
     cube_accel.setColor((0., 1., 0.))
 
@@ -154,6 +156,8 @@ def visualisation(x_angle_filter, y_angle_filter, x_angle_accel, y_angle_accel, 
 
     glRotate(float(x_angle_gyro), 1, 0, 0)
     glRotate(-float(y_angle_gyro), 0, 0, 1)
+    glRotate(float(z_angle_gyro), 0, 1, 0)
+
 
     cube_gyro.setColor((0., 0., 1.))
 
@@ -165,7 +169,9 @@ def visualisation(x_angle_filter, y_angle_filter, x_angle_accel, y_angle_accel, 
     glPushMatrix()
     glTranslate(1, 0, 0)
     glRotate(float(x_angle_filter), 1, 0, 0)
-    glRotate(-float(y_angle_filter), 0, 0, 1)
+    glRotate(-float(y_angle_filter), 0, 1, 0)
+    glRotate(float(z_angle_gyro), 0, 1, 0)
+
 
     if (color):
         cube.setColor((1., 0., 0.))
@@ -204,9 +210,10 @@ def run():
         rot_accel_y  = float(values[3])
         rot_gyro_x   = float(values[4])
         rot_gyro_y   = float(values[5])
-        x_accel      = float(values[6])
-        y_accel      = float(values[7])
-        z_accel      = float(values[8])
+        rot_gyro_z   = float(values[6])
+        x_accel      = float(values[7])
+        y_accel      = float(values[8])
+        z_accel      = float(values[9])
 
         #print values
         #print "x: " , x_filters[-1] , ";  y: " , y_angles[-1]
@@ -221,7 +228,7 @@ def run():
                 #print "x: " , x_accel , ";  y: " , y_accel , ";   x rot: " , x_angle , "  ;   y rot: " , rot_filter_y
                 writeSound(rot_filter_x, rot_filter_y)
 
-        visualisation(rot_filter_x, rot_filter_y, rot_accel_x, rot_accel_y, rot_gyro_x, rot_gyro_y, cube, cube_accel, cube_gyro, True)
+        visualisation(rot_filter_x, rot_filter_y, rot_accel_x, rot_accel_y, rot_gyro_x, rot_gyro_y, rot_gyro_z, cube, cube_accel, cube_gyro, True)
 
         x_old_accel = x_accel
         y_old_accel = y_accel
