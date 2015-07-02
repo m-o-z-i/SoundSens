@@ -19,9 +19,9 @@ accel_scale = 16384.0
 
 # complementary filter
 now = time.time()
-K = 0.80
+K = 0.50
 K1 = 1 - K
-time_diff = 0.01
+time_diff = 0.11
 last_x = 0.0
 last_y = 0.0
 last_z = 0.0
@@ -61,12 +61,12 @@ def dist(a, b):
     return math.sqrt((a * a) + (b * b))
 
 #roll
-def get_x_rotation(x,y,z):
+def get_y_rotation(x,y,z):
     radians = math.atan2(x, dist(y,z))
-    return math.degrees(radians)
+    return -math.degrees(radians)
 
 #pitch
-def get_y_rotation(x,y,z):
+def get_x_rotation(x,y,z):
     radians = math.atan2(y, dist(x,z))
     return math.degrees(radians)
 
@@ -81,9 +81,9 @@ def initComplementaryFilter():
     (gyro_scaled_x, gyro_scaled_y, gyro_scaled_z, accel_scaled_x, accel_scaled_y, accel_scaled_z) = read_all()
     last_x = get_x_rotation(accel_scaled_x, accel_scaled_y, accel_scaled_z)
     last_y = get_y_rotation(accel_scaled_x, accel_scaled_y, accel_scaled_z)
-    #gyro_offset_x = gyro_scaled_x 
-    #gyro_offset_y = gyro_scaled_y
-    #gyro_offset_z = gyro_scaled_z
+    gyro_offset_x = gyro_scaled_x 
+    gyro_offset_y = gyro_scaled_y
+    gyro_offset_z = gyro_scaled_z
     gyro_total_x = last_x
     gyro_total_y = last_y
     gyro_total_z = last_z
@@ -100,21 +100,24 @@ class index:
 	    # init complementary filter
             initComplementaryFilter()
 
-        deltaTime = time.time() - now
+        #deltaTime = time.time() - now
         #print deltaTime
-        now = time.time()
+        #now = time.time()
 
 	(gyro_scaled_x, gyro_scaled_y, gyro_scaled_z, accel_scaled_x, accel_scaled_y, accel_scaled_z) = read_all()
         #time.sleep(time_diff - 0.005)
 	
 	#gyro_scaled_x += X_CALIB
         #gyro_scaled_y += Y_CALIB
-        #gyro_scaled_z += Z_CALIB   
+        #gyro_scaled_z += Z_CALIB
+	gyro_scaled_x -= gyro_offset_x
+        gyro_scaled_y -= gyro_offset_y
+        gyro_scaled_z -= gyro_offset_z
 	
 	# accumulate gyro data
-	gyro_delta_x = (gyro_scaled_x * deltaTime)
-	gyro_delta_y = (gyro_scaled_y * deltaTime)
-	gyro_delta_z = (gyro_scaled_z * deltaTime)
+	gyro_delta_x = (gyro_scaled_x * time_diff)
+	gyro_delta_y = (gyro_scaled_y * time_diff)
+	gyro_delta_z = (gyro_scaled_z * time_diff)
 	
         # get total gyro angle
 	gyro_total_x += gyro_delta_x
