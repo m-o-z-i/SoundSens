@@ -3,6 +3,7 @@ from wavebender import *
 
 import pygame
 import urllib
+import time
 from OpenGL.GL import *
 from OpenGL.GLU import *
 from math import radians
@@ -48,31 +49,54 @@ def read_values():
     return myfile.split(" ")
 
 def writeSound(x, y):
-    channels = ((damped(x,y),), (damped(x,y),))
-    samples = compute_samples(channels, 44100 * 0.1)
+    channels = (violinOrig(x,y),)
+    samples = compute_samples(channels, 44100 * 0.2)
 
-    write_wavefile('test.wav', samples, 44100 * 0.1, nchannels=2)
+    write_wavefile('test.wav', samples, 44100 * 0.2, nchannels=1)
     command = 'aplay ./test.wav'
     os.system(command)
+
+def writeSound2(x, y):
+    channels = (damped(x,y), damped(x,y),)
+    samples = compute_samples(channels, 44100 * 1)
+
+    write_wavefile('test.wav', samples, 44100 * 1, nchannels=2)
+    command = 'aplay ./test.wav'
+    os.system(command)
+
+def violinOrig(x, y):
+    l = 44100 * 0.2
+    amp = map(-90, 90, x, 0.1, 0.01)
+    freq = map(-90, 90, y, 900, 50)
+
+    amplitude = 0.1
+
+    return (damped_wave(freq * 1,   amplitude=0.76*amplitude,   length=l),
+            damped_wave(freq * 2,   amplitude=0.44*amplitude,   length=l),
+            damped_wave(freq * 3,   amplitude=0.32*amplitude,   length=l),
+            damped_wave(freq * 8.5, amplitude=0.16*amplitude,   length=l),
+            damped_wave(freq * 1.5, amplitude=1.0 *amplitude,   length=l),
+            damped_wave(freq * 2.5, amplitude=0.44*amplitude,   length=l),
+            damped_wave(freq * 4,   amplitude=0.32*amplitude,   length=l))
 
 def violin(x, y):
     l = int(44100*0.4) # each note lasts 0.4 second
     amp = map(-90, 90, x, 2, 0.2)
     freq = map(-90, 90, y, 800, 350)
     
-    return (chain(damped_wave(frequency=0.8 * freq, framerate=44100, amplitude=0.76*amp, length=l * 0.1),
-                  damped_wave(frequency=1.3 * freq, framerate=44100, amplitude=0.44*amp, length=l * 0.1),
-                  damped_wave(frequency=2.5 * freq, framerate=44100, amplitude=0.32*amp, length=l * 0.1),
-                  damped_wave(frequency=7.0 * freq, framerate=44100, amplitude=0.16*amp, length=l * 0.1),
-                  damped_wave(frequency=1.2 * freq, framerate=44100, amplitude=1.00*amp, length=l * 0.1),
-                  damped_wave(frequency=2.0 * freq, framerate=44100, amplitude=0.44*amp, length=l * 0.1),
-                  damped_wave(frequency=3.2 * freq, framerate=44100, amplitude=0.32*amp, length=l * 0.1)))
+    return (chain(damped_wave(frequency=0.8 * freq, framerate=44100, amplitude=0.76*amp, length=l),
+                  damped_wave(frequency=1.3 * freq, framerate=44100, amplitude=0.44*amp, length=l),
+                  damped_wave(frequency=2.5 * freq, framerate=44100, amplitude=0.32*amp, length=l),
+                  damped_wave(frequency=7.0 * freq, framerate=44100, amplitude=0.16*amp, length=l),
+                  damped_wave(frequency=1.2 * freq, framerate=44100, amplitude=1.00*amp, length=l),
+                  damped_wave(frequency=2.0 * freq, framerate=44100, amplitude=0.44*amp, length=l),
+                  damped_wave(frequency=3.2 * freq, framerate=44100, amplitude=0.32*amp, length=l)))
 
 def damped(x, y):
     l = int(44100*0.4) # each note lasts 0.4 second
 
     amp = map(-90, 90, x, 2, 0.2)
-    freq = map(-90, 90, y, 750, 320)
+    freq = map(-90, 90, y, 850, 320)
     
     return islice( damped_wave(frequency=freq, framerate=44100, amplitude=amp, length=int(l/4)), l )
     
@@ -98,7 +122,7 @@ def map(in_min, in_max, x, out_min, out_max):
     return (x - in_min) * (out_max - out_min ) / (in_max - in_min) + out_min;
 
 def visualisation(x_angle_filter, y_angle_filter, x_angle_accel, y_angle_accel, x_angle_gyro, y_angle_gyro, z_angle_gyro, cube, cube_accel, cube_gyro, color):
-    print "filter: [", x_angle_filter, ", ", y_angle_filter,"];  accel: [", x_angle_accel, ", ", y_angle_accel, "];  gyro" , x_angle_gyro, ", " , y_angle_gyro , "]"
+    #print "filter: [", x_angle_filter, ", ", y_angle_filter,"];  accel: [", x_angle_accel, ", ", y_angle_accel, "];  gyro" , x_angle_gyro, ", " , y_angle_gyro , "]"
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
 
     glColor((1.,1.,1.))
@@ -140,29 +164,30 @@ def visualisation(x_angle_filter, y_angle_filter, x_angle_accel, y_angle_accel, 
     
     glEnd()
 
+
+
     # accel cube
     glPushMatrix()
-    glTranslate(-1, 0, 0)
+    glTranslate(1, 0, 0)
 
     glRotate(float(x_angle_accel), 1, 0, 0)
     glRotate(-float(y_angle_accel), 0, 0, 1)
-    glRotate(float(z_angle_gyro), 0, 1, 0)
-
+    #glRotate(float(z_angle_gyro), 0, 1, 0)
 
     cube_accel.setColor((0., 1., 0.))
 
     cube_accel.render() 
-    glTranslate(1, 0, 0)  
+    glTranslate(-1, 0, 0)  
     glPopMatrix()
     
 
+
+
     # gyro cube
     glPushMatrix()
-
     glRotate(float(x_angle_gyro), 1, 0, 0)
     glRotate(-float(y_angle_gyro), 0, 0, 1)
-    glRotate(float(z_angle_gyro), 0, 1, 0)
-
+    #glRotate(float(z_angle_gyro), 0, 1, 0)
 
     cube_gyro.setColor((0., 0., 1.))
 
@@ -170,13 +195,13 @@ def visualisation(x_angle_filter, y_angle_filter, x_angle_accel, y_angle_accel, 
     glPopMatrix()
 
 
+
     # filter cube
     glPushMatrix()
-    glTranslate(1, 0, 0)
+    glTranslate(-1, 0, 0)
     glRotate(float(x_angle_filter), 1, 0, 0)
-    glRotate(-float(y_angle_filter), 0, 1, 0)
-    glRotate(float(z_angle_gyro), 0, 1, 0)
-
+    glRotate(-float(y_angle_filter), 0, 0, 1)
+    #glRotate(float(z_angle_gyro), 0, 1, 0)
 
     if (color):
         cube.setColor((1., 0., 0.))
@@ -184,7 +209,7 @@ def visualisation(x_angle_filter, y_angle_filter, x_angle_accel, y_angle_accel, 
         cube.setColor((1., 1., 1.))
 
     cube.render()
-    glTranslate(-1, 0, 0)
+    glTranslate(1, 0, 0)
     glPopMatrix()
 
     pygame.display.flip()
@@ -212,8 +237,11 @@ def run():
 
     x_old_accel = 0
     y_old_accel = 0
+    z_old_accel = 0
 
     i = 0
+
+    musicTimer = time.time()
 
     while True:
         i += 1
@@ -234,6 +262,8 @@ def run():
         delta_gyro_y   = float(values[11])
         delta_gyro_z   = float(values[12])
 
+        now = time.time()
+
         #calibrateGyro(delta_gyro_x, delta_gyro_y, delta_gyro_z)
         #print "gyro delta data [" , delta_gyro_x , ", " , delta_gyro_y , ", " , delta_gyro_z , "]"
         #print "average drift: " , i , "  --> [" , gyro_calib_x/i , ", " , rot_gyro_y/i , ", " , rot_gyro_z/i , "]"
@@ -242,19 +272,22 @@ def run():
         #print "x: " , x_filters[-1] , ";  y: " , y_angles[-1]
         #print "x: " , x_accel , ";  y: " , y_accel ,  ";  z: " , z_accel
 
+        #print "accel data [" , x_accel , ", " , y_accel , ", " , z_accel , "]" 
+        #print "rotation [" , rot_accel_x , ", " , rot_accel_y , "]" 
 
-        if (abs(x_accel) < 1.5 and abs(y_accel) < 1.5 and abs(z_accel) < 1.5 ):
-            x_good_angle = rot_filter_x
-            y_good_angle = rot_filter_y
-        else:
-            if (((abs(x_accel) - abs(x_old_accel)) + ((abs(y_accel) - abs(y_old_accel))) / 2) > 0.5 ):
-                #print "x: " , x_accel , ";  y: " , y_accel , ";   x rot: " , x_angle , "  ;   y rot: " , rot_filter_y
-                writeSound(x_good_angle, y_good_angle)
+        accelDelta = (abs(x_old_accel) - abs(x_accel)) + (abs(y_old_accel) - abs(y_accel)) + (abs(z_old_accel) - abs(z_accel))
+
+        #print accelDelta
+        if (accelDelta > 1.0 and now - musicTimer > 0.5):
+            writeSound(rot_filter_x, rot_filter_y)
+            musicTimer = time.time()
+        
 
         visualisation(rot_filter_x, rot_filter_y, rot_accel_x, rot_accel_y, rot_gyro_x, rot_gyro_y, rot_gyro_z, cube, cube_accel, cube_gyro, True)
 
         x_old_accel = x_accel
         y_old_accel = y_accel
+        z_old_accel = z_accel
 
 
 class Cube(object):
