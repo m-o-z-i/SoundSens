@@ -43,16 +43,16 @@ def init():
     glLightfv(GL_LIGHT0, GL_AMBIENT, (0.3, 0.3, 0.3, 1.0));
 
 def read_values():
-    link = "http://10.42.0.32:8080" # Change this address to your settings
+    link = "http://10.42.0.27:8080" # Change this address to your settings
     f = urllib.urlopen(link)
     myfile = f.read()
     return myfile.split(" ")
 
-def writeSound(x, y):
-    channels = (violinOrig(x,y),)
-    samples = compute_samples(channels, 44100 * 0.2)
+def writeSound(x, y, length):
+    channels = (violinOrig(x,y, length),)
+    samples = compute_samples(channels, 44100 * length)
 
-    write_wavefile('test.wav', samples, 44100 * 0.2, nchannels=1)
+    write_wavefile('test.wav', samples, 44100 * length, nchannels=1)
     command = 'aplay ./test.wav'
     os.system(command)
 
@@ -64,8 +64,8 @@ def writeSound2(x, y):
     command = 'aplay ./test.wav'
     os.system(command)
 
-def violinOrig(x, y):
-    l = 44100 * 0.2
+def violinOrig(x, y, length):
+    l = 44100 * length
     amp = map(-90, 90, x, 0.1, 0.01)
     freq = map(-90, 90, y, 900, 50)
 
@@ -242,6 +242,7 @@ def run():
     i = 0
 
     musicTimer = time.time()
+    frameAcceleration = []
 
     while True:
         i += 1
@@ -269,17 +270,34 @@ def run():
         #print "average drift: " , i , "  --> [" , gyro_calib_x/i , ", " , rot_gyro_y/i , ", " , rot_gyro_z/i , "]"
 
         #print values
-        #print "x: " , x_filters[-1] , ";  y: " , y_angles[-1]
-        #print "x: " , x_accel , ";  y: " , y_accel ,  ";  z: " , z_accel
 
         #print "accel data [" , x_accel , ", " , y_accel , ", " , z_accel , "]" 
-        #print "rotation [" , rot_accel_x , ", " , rot_accel_y , "]" 
+        #print "rotation accel [" , rot_accel_x , ", " , rot_accel_y , "]" 
+        #print "rotation gyro [" , rot_gyro_x , ", " , rot_gyro_y , ", " , rot_gyro_z, "]" 
+        #print "rotation filter [" , rot_filter_x , ", " , rot_filter_y , "]" 
+
+            
 
         accelDelta = (abs(x_old_accel) - abs(x_accel)) + (abs(y_old_accel) - abs(y_accel)) + (abs(z_old_accel) - abs(z_accel))
+        accelSum = abs(x_accel) + abs(y_accel) + abs(z_accel)
+        #print accelSum
+        
+        if (len(frameAcceleration) < 5):
+            frameAcceleration.append(accelSum)
+        else:
+            frameAcceleration.pop(0)
+            frameAcceleration.append(accelSum)
+
+        accelAccumulation = 0
+        for accel in frameAcceleration:
+            accelAccumulation += accel
+
 
         #print accelDelta
-        if (accelDelta > 1.0 and now - musicTimer > 0.5):
-            writeSound(rot_filter_x, rot_filter_y)
+        if (accelDelta > 1.0 and accelAccumulation > 6.0): #and now - musicTimer > 0.5
+            length = max(map(7 , 15, accelAccumulation, 0.5, 0.1), 0.1)
+            print accelAccumulation , " and length:; ", length
+            writeSound(rot_filter_x, rot_filter_y, length)
             musicTimer = time.time()
         
 
