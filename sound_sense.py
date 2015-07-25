@@ -306,18 +306,19 @@ def run():
     cube_accel = Cube((0.0, 0.0, 0.0), (.5, .5, .7))
     cube_gyro = Cube((0.0, 0.0, 0.0), (.5, .5, .7))
 
-    x_good_angle = 0
-    y_good_angle = 0
-
     x_old_accel = 0
     y_old_accel = 0
     z_old_accel = 0
+
+    x_old_filter = 0 
+    y_old_filter = 0
 
     i = 0
 
     musicTimer = time.time()
     frameAcceleration = []
     playNextFrame = False
+    noSoundFrames = 0
 
     while True:
         i += 1
@@ -340,30 +341,22 @@ def run():
 
         now = time.time()
 
+        #CALIBRATION
         #calibrateGyro(delta_gyro_x, delta_gyro_y, delta_gyro_z)
         #print "gyro delta data [" , delta_gyro_x , ", " , delta_gyro_y , ", " , delta_gyro_z , "]"
         #print "average drift: " , i , "  --> [" , gyro_calib_x/i , ", " , rot_gyro_y/i , ", " , rot_gyro_z/i , "]"
 
-        #print values
 
+        #print values
         #print "accel data [" , x_accel , ", " , y_accel , ", " , z_accel , "]" 
         #print "rotation accel [" , rot_accel_x , ", " , rot_accel_y , "]" 
         #print "rotation gyro [" , rot_gyro_x , ", " , rot_gyro_y , ", " , rot_gyro_z, "]" 
         #print "rotation filter [" , rot_filter_x , ", " , rot_filter_y , "]" 
 
-            
-
-        accelDelta = (abs(x_old_accel) - abs(x_accel)) + (abs(y_old_accel) - abs(y_accel)) + (abs(z_old_accel) - abs(z_accel))
+        rotDelta = abs(abs(x_old_filter) - abs(rot_filter_x)) + abs(abs(y_old_filter) - abs(rot_filter_y))
+        accelDelta = abs(abs(x_old_accel) - abs(x_accel)) + abs(abs(y_old_accel) - abs(y_accel)) + abs(abs(z_old_accel) - abs(z_accel))
         accelSum = abs(x_accel) + abs(y_accel) + abs(z_accel)
-        #print accelSum
 
-        if (playNextFrame):
-            length = max(map(7 , 15, accelAccumulation, 0.5, 0.1), 0.1)
-            print accelAccumulation , " and length:; ", length
-            writeSound(rot_filter_x, rot_filter_y, length)
-
-        playNextFrame = False
-        
         if (len(frameAcceleration) < 5):
             frameAcceleration.append(accelSum)
         else:
@@ -374,19 +367,29 @@ def run():
         for accel in frameAcceleration:
             accelAccumulation += accel
 
+        if (playNextFrame):
+            length = max(map(7 , 15, accelAccumulation, 0.5, 0.1), 0.1)
+            writeSound(rot_filter_x, rot_filter_y, length)
+            noSoundFrames = 0
+        else:
+            noSoundFrames += 1
+        
+        playNextFrame = False
 
-        #print accelDelta
-        if (accelDelta > 1.0 and accelAccumulation > 6.0): #and now - musicTimer > 0.5
-            print "delta: " , accelDelta, "  accelAccumulation: " , accelAccumulation
+        if (noSoundFrames > 1 and accelDelta > 2.0 and accelAccumulation > 6.0): #and now - musicTimer > 0.5
+            #print "delta: " , accelDelta, "  rotDelta: " , rotDelta
             playNextFrame = True
             musicTimer = time.time()
         
-
         visualisation(rot_filter_x, rot_filter_y, rot_accel_x, rot_accel_y, rot_gyro_x, rot_gyro_y, rot_gyro_z, cube, cube_accel, cube_gyro, True)
 
         x_old_accel = x_accel
         y_old_accel = y_accel
         z_old_accel = z_accel
+
+        x_old_filter = rot_filter_x
+        y_old_filter = rot_filter_y
+
 
 
 class Cube(object):
