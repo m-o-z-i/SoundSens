@@ -19,7 +19,7 @@ accel_scale = 16384.0
 
 # complementary filter
 now = time.time()
-K = 0.85
+K = 0.5
 K1 = 1 - K
 time_diff = 0.11
 last_x = 0.0
