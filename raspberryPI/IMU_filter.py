@@ -92,55 +92,55 @@ def initComplementaryFilter():
 id = 0
 class index:
     def GET(self):
-	global id, now
-	global gyro_total_x, gyro_total_y, gyro_total_z, last_x, last_y, last_z
-	
-	id += 1
-	if id == 1:
-	    # init complementary filter
+        global id, now
+        global gyro_total_x, gyro_total_y, gyro_total_z, last_x, last_y, last_z
+
+        id += 1
+        if id == 1:
+            # init complementary filter
             initComplementaryFilter()
 
         #deltaTime = time.time() - now
         #print deltaTime
         #now = time.time()
 
-	(gyro_scaled_x, gyro_scaled_y, gyro_scaled_z, accel_scaled_x, accel_scaled_y, accel_scaled_z) = read_all()
+        (gyro_scaled_x, gyro_scaled_y, gyro_scaled_z, accel_scaled_x, accel_scaled_y, accel_scaled_z) = read_all()
         #time.sleep(time_diff - 0.005)
-	
-	#gyro_scaled_x += X_CALIB
+
+        #gyro_scaled_x += X_CALIB
         #gyro_scaled_y += Y_CALIB
-        #gyro_scaled_z += Z_CALIB
-	gyro_scaled_x -= gyro_offset_x
+        #gyro_scaled_z += Z_CALIB    
+        gyro_scaled_x -= gyro_offset_x
         gyro_scaled_y -= gyro_offset_y
         gyro_scaled_z -= gyro_offset_z
-	
-	# accumulate gyro data
-	gyro_delta_x = (gyro_scaled_x * time_diff)
-	gyro_delta_y = (gyro_scaled_y * time_diff)
-	gyro_delta_z = (gyro_scaled_z * time_diff)
-	
-        # get total gyro angle
-	gyro_total_x += gyro_delta_x
-	gyro_total_y += gyro_delta_y
-	gyro_total_z += gyro_delta_z
-	
-	# get accelometer rotation
-	rotation_accel_x = get_x_rotation(accel_scaled_x, accel_scaled_y, accel_scaled_z)
-	rotation_accel_y = get_y_rotation(accel_scaled_x, accel_scaled_y, accel_scaled_z)
-	
-        # complementary filter
-	last_x = K * (last_x + gyro_delta_x) + (K1 * rotation_accel_x)
-	last_y = K * (last_y + gyro_delta_y) + (K1 * rotation_accel_y)
 
-        return str(last_x)+" "+ \
-               str(last_y) +" "+ \
-	       str(rotation_accel_x)+" "+ \
-               str(rotation_accel_y) +" "+ \
-               str(gyro_total_x)+" "+ str(gyro_total_y) +" "+ str(gyro_total_z) +" "+ \
-               str(accel_scaled_x) +" "+ str(accel_scaled_y) +" "+ str(accel_scaled_z) +" "+ \
-               str(gyro_delta_x)+" "+ str(gyro_delta_y) +" "+ str(gyro_delta_z) 
- 
- 
+        # accumulate gyro data
+        gyro_delta_x = (gyro_scaled_x * time_diff)
+        gyro_delta_y = (gyro_scaled_y * time_diff)
+        gyro_delta_z = (gyro_scaled_z * time_diff)
+
+        # get total gyro angle
+        gyro_total_x += gyro_delta_x
+        gyro_total_y += gyro_delta_y
+        gyro_total_z += gyro_delta_z
+
+        # get accelometer rotation
+        rotation_accel_x = get_x_rotation(accel_scaled_x, accel_scaled_y, accel_scaled_z)
+        rotation_accel_y = get_y_rotation(accel_scaled_x, accel_scaled_y, accel_scaled_z)
+
+        # complementary filter
+        last_x = K * (last_x + gyro_delta_x) + (K1 * rotation_accel_x)
+        last_y = K * (last_y + gyro_delta_y) + (K1 * rotation_accel_y)
+
+        return  str(last_x)+" "+ \
+                str(last_y) +" "+ \
+                str(rotation_accel_x)+" "+ \
+                str(rotation_accel_y) +" "+ \
+                str(gyro_total_x)+" "+ str(gyro_total_y) +" "+ str(gyro_total_z) +" "+ \
+                str(accel_scaled_x) +" "+ str(accel_scaled_y) +" "+ str(accel_scaled_z) +" "+ \
+                str(gyro_delta_x)+" "+ str(gyro_delta_y) +" "+ str(gyro_delta_z) 
+
+
 if __name__ == "__main__":
     # Now wake the 6050 up as it starts in sleep mode
     bus.write_byte_data(address, power_mgmt_1, 0)
