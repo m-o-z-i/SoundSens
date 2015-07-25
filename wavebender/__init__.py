@@ -53,7 +53,7 @@ def square_wave(frequency=440.0, framerate=44100, amplitude=0.5):
 def damped_wave(frequency=440.0, framerate=44100, amplitude=0.5, length=44100):
     if amplitude > 1.0: amplitude = 1.0
     if amplitude < 0.0: amplitude = 0.0
-    return (math.exp(-(float(i%length)/float(framerate*0.15))) * s for i, s in enumerate(sine_wave(frequency, framerate, amplitude)))
+    return (math.exp(-(float(i%length)/float(framerate))) * s for i, s in enumerate(sine_wave(frequency, framerate, amplitude)))
 
 def white_noise(amplitude=0.5):
     '''

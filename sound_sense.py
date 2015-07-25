@@ -49,6 +49,44 @@ def read_values():
     return myfile.split(" ")
 
 def writeSound(x, y, length):
+    soundlength = 0.4
+    l1 = 44100 * 0.4
+    l2 = l1
+    amp = map(-90, 90, x, 0.1, 0.01)
+    freq = map(-90, 90, y, 900, 50)
+
+    if (length > 0.4):
+        l1 = 8 * l1
+        l2 = 2  * l2
+        soundlength = 2.0
+
+
+    channels = ((C(l1, l2),), (C(l1, l2),))
+    if(freq < 250):
+        print "C ---> (" , freq , ")"
+    elif(freq < 360):
+        channels = ((D(l1, l2),), (D(l1, l2),))
+        print "D ---> (" , freq , ")"
+    elif(freq < 470):
+        channels = ((E(l1, l2),), (E(l1, l2),))
+        print "E ---> (" , freq , ")"
+    elif(freq < 580):
+        channels = ((F(l1, l2),), (F(l1, l2),))
+        print "F ---> (" , freq , ")"
+    elif(freq < 690):
+        channels = ((G(l1, l2),), (G(l1, l2),))
+        print "G ---> (" , freq , ")"
+    else:
+        channels = ((A(l1, l2),), (A(l1, l2),))
+        print "A ---> (" , freq , ")"
+
+    samples = compute_samples(channels, 44100 * soundlength)
+
+    write_wavefile('test.wav', samples, 44100 * soundlength, nchannels=2)
+    command = 'aplay ./test.wav'
+    os.system(command)
+
+def writeSound1C(x, y, length):
     channels = (violinOrig(x,y, length),)
     samples = compute_samples(channels, 44100 * length)
 
@@ -56,15 +94,35 @@ def writeSound(x, y, length):
     command = 'aplay ./test.wav'
     os.system(command)
 
-def writeSound2(x, y):
-    channels = (damped(x,y), damped(x,y),)
+
+def writeSound2C(x, y, length):
+    channels = (violinG(x,y, length), violinA(x,y, length),)
     samples = compute_samples(channels, 44100 * 1)
 
     write_wavefile('test.wav', samples, 44100 * 1, nchannels=2)
     command = 'aplay ./test.wav'
     os.system(command)
 
-def violinOrig(x, y, length):
+
+def C(length1, length2):
+  return islice(damped_wave(frequency=260.0, amplitude=1, length=int(length1/4)), length2)
+
+def D(length1, length2):
+  return islice(damped_wave(frequency=300.0, amplitude=1, length=int(length1/4)), length2)
+
+def E(length1, length2):
+  return islice(damped_wave(frequency=340.0, amplitude=1, length=int(length1/4)), length2)
+
+def F(length1, length2):
+  return islice(damped_wave(frequency=380.0, amplitude=1, length=int(length1/4)), length2)
+
+def G(length1, length2):
+  return islice(damped_wave(frequency=420.0, amplitude=1, length=int(length1/4)), length2)
+
+def A(length1, length2):
+  return islice(damped_wave(frequency=460.0, amplitude=1, length=int(length1/4)), length2)
+
+def violin2(x, y, length):
     l = 44100 * length
     amp = map(-90, 90, x, 0.1, 0.01)
     freq = map(-90, 90, y, 900, 50)
@@ -79,18 +137,34 @@ def violinOrig(x, y, length):
             damped_wave(freq * 2.5, amplitude=0.44*amplitude,   length=l),
             damped_wave(freq * 4,   amplitude=0.32*amplitude,   length=l))
 
-def violin(x, y):
-    l = int(44100*0.4) # each note lasts 0.4 second
-    amp = map(-90, 90, x, 2, 0.2)
+def violinG(x, y, length):
+    l = 44100 * length
+    amp = map(-90, 90, x, 0.1, 0.01)
+    freq = map(-90, 90, y, 900, 50)
+
+    amplitude = 0.1
+
+    return (damped_wave(400.0, amplitude=0.76*amplitude, length=l),
+            damped_wave(800.0, amplitude=0.44*amplitude, length=l),
+            damped_wave(1200.0, amplitude=0.32*amplitude, length=l),
+            damped_wave(3400.0, amplitude=0.16*amplitude, length=l),
+            damped_wave(600.0, amplitude=1.0*amplitude, length=l),
+            damped_wave(1000.0, amplitude=0.44*amplitude, length=l),
+            damped_wave(1600.0, amplitude=0.32*amplitude, length=l))
+
+
+def violin1(x, y, length):
+    l = int(44100*length) # each note lasts 0.4 second
+    amp = map(-90, 90, x, 0.1, 0.02)
     freq = map(-90, 90, y, 800, 350)
     
-    return (chain(damped_wave(frequency=0.8 * freq, framerate=44100, amplitude=0.76*amp, length=l),
+    return (damped_wave(frequency=0.8 * freq, framerate=44100, amplitude=0.76*amp, length=l),
                   damped_wave(frequency=1.3 * freq, framerate=44100, amplitude=0.44*amp, length=l),
                   damped_wave(frequency=2.5 * freq, framerate=44100, amplitude=0.32*amp, length=l),
                   damped_wave(frequency=7.0 * freq, framerate=44100, amplitude=0.16*amp, length=l),
                   damped_wave(frequency=1.2 * freq, framerate=44100, amplitude=1.00*amp, length=l),
                   damped_wave(frequency=2.0 * freq, framerate=44100, amplitude=0.44*amp, length=l),
-                  damped_wave(frequency=3.2 * freq, framerate=44100, amplitude=0.32*amp, length=l)))
+                  damped_wave(frequency=3.2 * freq, framerate=44100, amplitude=0.32*amp, length=l))
 
 def damped(x, y):
     l = int(44100*0.4) # each note lasts 0.4 second
@@ -243,6 +317,7 @@ def run():
 
     musicTimer = time.time()
     frameAcceleration = []
+    playNextFrame = False
 
     while True:
         i += 1
@@ -281,6 +356,13 @@ def run():
         accelDelta = (abs(x_old_accel) - abs(x_accel)) + (abs(y_old_accel) - abs(y_accel)) + (abs(z_old_accel) - abs(z_accel))
         accelSum = abs(x_accel) + abs(y_accel) + abs(z_accel)
         #print accelSum
+
+        if (playNextFrame):
+            length = max(map(7 , 15, accelAccumulation, 0.5, 0.1), 0.1)
+            print accelAccumulation , " and length:; ", length
+            writeSound(rot_filter_x, rot_filter_y, length)
+
+        playNextFrame = False
         
         if (len(frameAcceleration) < 5):
             frameAcceleration.append(accelSum)
@@ -295,9 +377,8 @@ def run():
 
         #print accelDelta
         if (accelDelta > 1.0 and accelAccumulation > 6.0): #and now - musicTimer > 0.5
-            length = max(map(7 , 15, accelAccumulation, 0.5, 0.1), 0.1)
-            print accelAccumulation , " and length:; ", length
-            writeSound(rot_filter_x, rot_filter_y, length)
+            print "delta: " , accelDelta, "  accelAccumulation: " , accelAccumulation
+            playNextFrame = True
             musicTimer = time.time()
         
 
