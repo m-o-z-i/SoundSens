@@ -19,7 +19,7 @@ accel_scale = 16384.0
 
 # complementary filter
 now = time.time()
-K = 0.5
+K = 0.65
 K1 = 1 - K
 time_diff = 0.11
 last_x = 0.0
@@ -110,9 +110,9 @@ class index:
         #gyro_scaled_x += X_CALIB
         #gyro_scaled_y += Y_CALIB
         #gyro_scaled_z += Z_CALIB    
-        gyro_scaled_x -= gyro_offset_x
-        gyro_scaled_y -= gyro_offset_y
-        gyro_scaled_z -= gyro_offset_z
+        #gyro_scaled_x -= gyro_offset_x
+        #gyro_scaled_y -= gyro_offset_y
+        #gyro_scaled_z -= gyro_offset_z
 
         # accumulate gyro data
         gyro_delta_x = (gyro_scaled_x * time_diff)
