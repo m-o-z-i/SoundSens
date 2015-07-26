@@ -71,22 +71,22 @@ def precomputeSound():
 
 
 def C(length1, length2):
-  return islice(damped_wave(frequency=260.0, amplitude=1, length=int(length1/4)), length2)
+  return islice(damped_wave(frequency=180.0, amplitude=1, length=int(length1/4)), length2)
 
 def D(length1, length2):
-  return islice(damped_wave(frequency=300.0, amplitude=1, length=int(length1/4)), length2)
+  return islice(damped_wave(frequency=210.0, amplitude=1, length=int(length1/4)), length2)
 
 def E(length1, length2):
-  return islice(damped_wave(frequency=340.0, amplitude=1, length=int(length1/4)), length2)
+  return islice(damped_wave(frequency=240.0, amplitude=1, length=int(length1/4)), length2)
 
 def F(length1, length2):
-  return islice(damped_wave(frequency=380.0, amplitude=1, length=int(length1/4)), length2)
+  return islice(damped_wave(frequency=270.0, amplitude=1, length=int(length1/4)), length2)
 
 def G(length1, length2):
-  return islice(damped_wave(frequency=420.0, amplitude=1, length=int(length1/4)), length2)
+  return islice(damped_wave(frequency=300.0, amplitude=1, length=int(length1/4)), length2)
 
 def A(length1, length2):
-  return islice(damped_wave(frequency=460.0, amplitude=1, length=int(length1/4)), length2)
+  return islice(damped_wave(frequency=330.0, amplitude=1, length=int(length1/4)), length2)
 
 def violin2(x, y, length):
     l = 44100 * length
