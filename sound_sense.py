@@ -14,65 +14,36 @@ gyro_calib_x = 0
 gyro_calib_y = 0
 gyro_calib_z = 0
 
+
 def read_values():
     link = "http://10.42.0.27:8080" # Change this address to your settings
     f = urllib.urlopen(link)
     myfile = f.read()
     return myfile.split(" ")
 
-def writeSound(x, y, length):
-    soundlength = 0.4
-    l1 = 44100 * 0.4
-    l2 = l1
+def playSound(x, y, length):
+    soundName = ''
+
     amp = map(-90, 90, x, 0.1, 0.01)
     freq = map(-90, 90, y, 900, 50)
 
-    if (length < 8.0):
-        l1 = 12 * l1
-        l2 = 3  * l2
-        soundlength = 2.0
-
-
-    channels = ((C(l1, l2),), (C(l1, l2),))
     if(freq < 240):
-        print "C ---> (freq: " , freq , ", l: " , length,  ")"
+        soundName = 'C'
     elif(freq < 345):
-        channels = ((D(l1, l2),), (D(l1, l2),))
-        print "D ---> (freq: " , freq , ", l: " , length,  ")"
+        soundName = 'D'
     elif(freq < 450):
-        channels = ((E(l1, l2),), (E(l1, l2),))
-        print "E ---> (freq: " , freq , ", l: " , length,  ")"
+        soundName = 'E'
     elif(freq < 545):
-        channels = ((F(l1, l2),), (F(l1, l2),))
-        print "F ---> (freq: " , freq , ", l: " , length,  ")"
+        soundName = 'F'
     elif(freq < 670):
-        channels = ((G(l1, l2),), (G(l1, l2),))
-        print "G ---> (freq: " , freq , ", l: " , length,  ")"
+        soundName = 'G'
     else:
-        channels = ((A(l1, l2),), (A(l1, l2),))
-        print "A ---> (freq: " , freq , ", l: " , length,  ")"
+        soundName = 'A'
 
-    samples = compute_samples(channels, 44100 * soundlength)
+    if (length < 8.0):
+        soundName = soundName + '_L'
 
-    write_wavefile('test.wav', samples, 44100 * soundlength, nchannels=2)
-    command = 'aplay ./test.wav'
-    os.system(command)
-
-def writeSound1C(x, y, length):
-    channels = (violinOrig(x,y, length),)
-    samples = compute_samples(channels, 44100 * length)
-
-    write_wavefile('test.wav', samples, 44100 * length, nchannels=1)
-    command = 'aplay ./test.wav'
-    os.system(command)
-
-
-def writeSound2C(x, y, length):
-    channels = (violinG(x,y, length), violinA(x,y, length),)
-    samples = compute_samples(channels, 44100 * 1)
-
-    write_wavefile('test.wav', samples, 44100 * 1, nchannels=2)
-    command = 'aplay ./test.wav'
+    command = 'aplay tones/'+soundName+'.wav'
     os.system(command)
 
 def map(in_min, in_max, x, out_min, out_max):
@@ -84,9 +55,9 @@ def calibrateGyro(rot_gyro_x, rot_gyro_y, rot_gyro_z):
     gyro_calib_y += rot_gyro_y
     gyro_calib_z += rot_gyro_z
 
-
 def run():
     init()
+    precomputeSound()
 
     x_old_accel = 0
     y_old_accel = 0
@@ -161,7 +132,7 @@ def run():
 
         #print oldAccelAccumulation
         if (playNextFrame):
-            writeSound(rot_filter_x, rot_filter_y, accelAccumulation)
+            playSound(rot_filter_x, rot_filter_y, accelAccumulation)
             noSoundFrames = 0
         else:
             noSoundFrames += 1
