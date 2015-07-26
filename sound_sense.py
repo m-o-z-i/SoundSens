@@ -21,6 +21,7 @@ def read_values():
     myfile = f.read()
     return myfile.split(" ")
 
+
 def playSound(x, y, length):
     soundName = ''
 
@@ -40,7 +41,7 @@ def playSound(x, y, length):
     else:
         soundName = 'A'
 
-    if (length < 8.0):
+    if (length < 12.0):
         soundName = soundName + '_L'
 
     command = 'aplay tones/'+soundName+'.wav'
@@ -111,37 +112,45 @@ def run():
         #print "rotation accel [" , rot_accel_x , ", " , rot_accel_y , "]" 
         #print "rotation gyro [" , rot_gyro_x , ", " , rot_gyro_y , ", " , rot_gyro_z, "]" 
         #print "rotation filter [" , rot_filter_x , ", " , rot_filter_y , "]" 
+        
+
         visualisation(rot_filter_x, rot_filter_y, rot_accel_x, rot_accel_y, rot_gyro_x, rot_gyro_y, rot_gyro_z, True)
 
         rotDelta = abs(abs(x_old_filter) - abs(rot_filter_x)) + abs(abs(y_old_filter) - abs(rot_filter_y))
         accelDeltaTest = abs(abs(x_old_accel) - abs(x_accel)) + abs(abs(y_old_accel) - abs(y_accel)) + abs(abs(z_old_accel) - abs(z_accel))
         accelSum = abs(x_accel) + abs(y_accel) + abs(z_accel)
-        gyroSum = abs(abs(x_old_gyro) - abs(rot_gyro_x)) + abs(abs(y_old_gyro) - abs(rot_gyro_y)) + abs(abs(z_old_gyro) - abs(rot_gyro_z))
+        accelDelta = (abs(x_old_accel) - abs(x_accel)) + (abs(y_old_accel) - abs(y_accel)) + (abs(z_old_accel) - abs(z_accel))
+        gyroDelta = abs(abs(x_old_gyro) - abs(rot_gyro_x)) + abs(abs(y_old_gyro) - abs(rot_gyro_y)) + abs(abs(z_old_gyro) - abs(rot_gyro_z))
 
-        #print gyroSum , "  " , accelSum
+        #print "gyro: " , gyroDelta , ";  accelSum: " , accelSum , ";   accelDelta: " , accelDeltaTest
+        if (gyroDelta < 2 and accelDelta < 1):
+            #reset jerky motion detection
+            print "reset"
+            frameAcceleration = []
 
-        if (len(frameAcceleration) < 5):
-            frameAcceleration.append(accelSum)
+        if (len(frameAcceleration) < 10):
+            frameAcceleration.append(gyroDelta)
         else:
             frameAcceleration.pop(0)
-            frameAcceleration.append(accelSum)
+            frameAcceleration.append(gyroDelta)
 
         accelAccumulation = 0
         for accel in frameAcceleration:
             accelAccumulation += accel
 
-        #print oldAccelAccumulation
+        length = accelAccumulation / len(frameAcceleration)
+        print length
+
         if (playNextFrame):
-            playSound(rot_filter_x, rot_filter_y, accelAccumulation)
+            #print "################ play Sound #####################"
+            playSound(rot_filter_x, rot_filter_y, length)
+            
+            frameAcceleration = []
             noSoundFrames = 0
         else:
             noSoundFrames += 1
         
         playNextFrame = False
-
-        #print noSoundFrames
-
-        accelDelta = (abs(x_old_accel) - abs(x_accel)) + (abs(y_old_accel) - abs(y_accel)) + (abs(z_old_accel) - abs(z_accel))
 
         #print accelDelta
         #if (noSoundFrames > 1 and accelDelta > 2.10 and accelAccumulation > 2.0): #and now - musicTimer > 0.5
@@ -149,8 +158,8 @@ def run():
             #print "delta: " , accelDelta, "  rotDelta: " , rotDelta
             playNextFrame = True
             musicTimer = time.time()
-        
 
+        # save previous stuff
         x_old_accel = x_accel
         y_old_accel = y_accel
         z_old_accel = z_accel
@@ -163,7 +172,6 @@ def run():
         y_old_filter = rot_filter_y
 
         oldAccelAccumulation = accelAccumulation
-
 
 if __name__ == "__main__":
     #print("start GL visualisation")
