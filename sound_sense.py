@@ -27,29 +27,30 @@ def writeSound(x, y, length):
     amp = map(-90, 90, x, 0.1, 0.01)
     freq = map(-90, 90, y, 900, 50)
 
-    if (length > 0.4):
-        l1 = 8 * l1
-        l2 = 2  * l2
+    if (length < 8.0):
+        l1 = 12 * l1
+        l2 = 3  * l2
         soundlength = 2.0
 
+
     channels = ((C(l1, l2),), (C(l1, l2),))
-    if(freq < 250):
-        print "C ---> (" , freq , ")"
-    elif(freq < 360):
+    if(freq < 240):
+        print "C ---> (freq: " , freq , ", l: " , length,  ")"
+    elif(freq < 345):
         channels = ((D(l1, l2),), (D(l1, l2),))
-        print "D ---> (" , freq , ")"
-    elif(freq < 470):
+        print "D ---> (freq: " , freq , ", l: " , length,  ")"
+    elif(freq < 450):
         channels = ((E(l1, l2),), (E(l1, l2),))
-        print "E ---> (" , freq , ")"
-    elif(freq < 580):
+        print "E ---> (freq: " , freq , ", l: " , length,  ")"
+    elif(freq < 545):
         channels = ((F(l1, l2),), (F(l1, l2),))
-        print "F ---> (" , freq , ")"
-    elif(freq < 690):
+        print "F ---> (freq: " , freq , ", l: " , length,  ")"
+    elif(freq < 670):
         channels = ((G(l1, l2),), (G(l1, l2),))
-        print "G ---> (" , freq , ")"
+        print "G ---> (freq: " , freq , ", l: " , length,  ")"
     else:
         channels = ((A(l1, l2),), (A(l1, l2),))
-        print "A ---> (" , freq , ")"
+        print "A ---> (freq: " , freq , ", l: " , length,  ")"
 
     samples = compute_samples(channels, 44100 * soundlength)
 
@@ -94,6 +95,12 @@ def run():
     x_old_filter = 0 
     y_old_filter = 0
 
+    x_old_gyro = 0
+    y_old_gyro = 0
+    z_old_gyro = 0
+
+    oldAccelAccumulation = 0
+
     i = 0
 
     musicTimer = time.time()
@@ -133,10 +140,14 @@ def run():
         #print "rotation accel [" , rot_accel_x , ", " , rot_accel_y , "]" 
         #print "rotation gyro [" , rot_gyro_x , ", " , rot_gyro_y , ", " , rot_gyro_z, "]" 
         #print "rotation filter [" , rot_filter_x , ", " , rot_filter_y , "]" 
+        visualisation(rot_filter_x, rot_filter_y, rot_accel_x, rot_accel_y, rot_gyro_x, rot_gyro_y, rot_gyro_z, True)
 
         rotDelta = abs(abs(x_old_filter) - abs(rot_filter_x)) + abs(abs(y_old_filter) - abs(rot_filter_y))
-        accelDelta = abs(abs(x_old_accel) - abs(x_accel)) + abs(abs(y_old_accel) - abs(y_accel)) + abs(abs(z_old_accel) - abs(z_accel))
+        accelDeltaTest = abs(abs(x_old_accel) - abs(x_accel)) + abs(abs(y_old_accel) - abs(y_accel)) + abs(abs(z_old_accel) - abs(z_accel))
         accelSum = abs(x_accel) + abs(y_accel) + abs(z_accel)
+        gyroSum = abs(abs(x_old_gyro) - abs(rot_gyro_x)) + abs(abs(y_old_gyro) - abs(rot_gyro_y)) + abs(abs(z_old_gyro) - abs(rot_gyro_z))
+
+        #print gyroSum , "  " , accelSum
 
         if (len(frameAcceleration) < 5):
             frameAcceleration.append(accelSum)
@@ -148,28 +159,39 @@ def run():
         for accel in frameAcceleration:
             accelAccumulation += accel
 
+        #print oldAccelAccumulation
         if (playNextFrame):
-            length = max(map(7 , 15, accelAccumulation, 0.5, 0.1), 0.1)
-            writeSound(rot_filter_x, rot_filter_y, length)
+            writeSound(rot_filter_x, rot_filter_y, accelAccumulation)
             noSoundFrames = 0
         else:
             noSoundFrames += 1
         
         playNextFrame = False
 
-        if (noSoundFrames > 1 and accelDelta > 2.0 and accelAccumulation > 6.0): #and now - musicTimer > 0.5
+        #print noSoundFrames
+
+        accelDelta = (abs(x_old_accel) - abs(x_accel)) + (abs(y_old_accel) - abs(y_accel)) + (abs(z_old_accel) - abs(z_accel))
+
+        #print accelDelta
+        #if (noSoundFrames > 1 and accelDelta > 2.10 and accelAccumulation > 2.0): #and now - musicTimer > 0.5
+        if (noSoundFrames > 1 and accelDelta > 1.0 and now - musicTimer > 0.4):
             #print "delta: " , accelDelta, "  rotDelta: " , rotDelta
             playNextFrame = True
             musicTimer = time.time()
         
-        visualisation(rot_filter_x, rot_filter_y, rot_accel_x, rot_accel_y, rot_gyro_x, rot_gyro_y, rot_gyro_z, True)
 
         x_old_accel = x_accel
         y_old_accel = y_accel
         z_old_accel = z_accel
 
+        x_old_gyro = rot_gyro_x
+        y_old_gyro = rot_gyro_y
+        z_old_gyro = rot_gyro_z
+
         x_old_filter = rot_filter_x
         y_old_filter = rot_filter_y
+
+        oldAccelAccumulation = accelAccumulation
 
 
 if __name__ == "__main__":
