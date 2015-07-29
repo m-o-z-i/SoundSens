@@ -19,9 +19,9 @@ accel_scale = 16384.0
 
 # complementary filter
 now = time.time()
-K = 0.65
+K = 0.87
 K1 = 1 - K
-time_diff = 0.11
+time_diff = 0.15
 last_x = 0.0
 last_y = 0.0
 last_z = 0.0
@@ -93,6 +93,12 @@ id = 0
 class index:
     def GET(self):
         global id, now
+	#deltaTime = time.time() - now
+        #print deltaTime
+        #now = time.time()
+	#time_diff = deltaTime
+
+        
         global gyro_total_x, gyro_total_y, gyro_total_z, last_x, last_y, last_z
 
         id += 1
@@ -100,12 +106,7 @@ class index:
             # init complementary filter
             initComplementaryFilter()
 
-        #deltaTime = time.time() - now
-        #print deltaTime
-        #now = time.time()
-
         (gyro_scaled_x, gyro_scaled_y, gyro_scaled_z, accel_scaled_x, accel_scaled_y, accel_scaled_z) = read_all()
-        #time.sleep(time_diff - 0.005)
 
         #gyro_scaled_x += X_CALIB
         #gyro_scaled_y += Y_CALIB
