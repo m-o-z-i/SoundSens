@@ -125,7 +125,7 @@ def run():
         #print "gyro: " , gyroDelta , ";  accelSum: " , accelSum , ";   accelDelta: " , accelDeltaTest
         if (gyroDelta < 2 and accelDelta < 1):
             #reset jerky motion detection
-            print "reset"
+            #print "reset"
             frameAcceleration = []
 
         if (len(frameAcceleration) < 10):
@@ -139,7 +139,7 @@ def run():
             accelAccumulation += accel
 
         length = accelAccumulation / len(frameAcceleration)
-        print length
+        #print length
 
         if (playNextFrame):
             #print "################ play Sound #####################"
