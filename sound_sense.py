@@ -1,8 +1,7 @@
 #!/usr/bin/python
 from wavebender import *
 from sounds import *
-from visualisation import *
-from cube import *
+from IMU_filter import *
 
 import urllib
 import time
@@ -16,9 +15,9 @@ gyro_calib_z = 0
 
 
 def read_values():
-    link = "http://10.42.0.27:8080" # Change this address to your settings
-    f = urllib.urlopen(link)
-    myfile = f.read()
+    #link = "http://127.0.0.1:8080" # Change this address to your settings
+    #f = urllib.urlopen(link)
+    myfile = getValues()
     return myfile.split(" ")
 
 
@@ -41,7 +40,7 @@ def playSound(x, y, length):
     else:
         soundName = 'A'
 
-    if (length < 12.0):
+    if (length < 0.9):
         soundName = soundName + '_L'
 
     command = 'aplay tones/'+soundName+'.wav'
@@ -57,8 +56,7 @@ def calibrateGyro(rot_gyro_x, rot_gyro_y, rot_gyro_z):
     gyro_calib_z += rot_gyro_z
 
 def run():
-    init()
-    precomputeSound()
+    #precomputeSound()
 
     x_old_accel = 0
     y_old_accel = 0
@@ -114,8 +112,6 @@ def run():
         #print "rotation filter [" , rot_filter_x , ", " , rot_filter_y , "]" 
         
 
-        visualisation(rot_filter_x, rot_filter_y, rot_accel_x, rot_accel_y, rot_gyro_x, rot_gyro_y, rot_gyro_z, True)
-
         rotDelta = abs(abs(x_old_filter) - abs(rot_filter_x)) + abs(abs(y_old_filter) - abs(rot_filter_y))
         accelDeltaTest = abs(abs(x_old_accel) - abs(x_accel)) + abs(abs(y_old_accel) - abs(y_accel)) + abs(abs(z_old_accel) - abs(z_accel))
         accelSum = abs(x_accel) + abs(y_accel) + abs(z_accel)
@@ -125,7 +121,7 @@ def run():
         #print "gyro: " , gyroDelta , ";  accelSum: " , accelSum , ";   accelDelta: " , accelDeltaTest
         if (gyroDelta < 2 and accelDelta < 1):
             #reset jerky motion detection
-            print "reset"
+            #print "reset"
             frameAcceleration = []
 
         if (len(frameAcceleration) < 10):
@@ -139,7 +135,7 @@ def run():
             accelAccumulation += accel
 
         length = accelAccumulation / len(frameAcceleration)
-        print length
+        #print length
 
         if (playNextFrame):
             #print "################ play Sound #####################"
@@ -154,7 +150,7 @@ def run():
 
         #print accelDelta
         #if (noSoundFrames > 1 and accelDelta > 2.10 and accelAccumulation > 2.0): #and now - musicTimer > 0.5
-        if (noSoundFrames > 1 and accelDelta > 1.0 and now - musicTimer > 0.4):
+        if (noSoundFrames > 1 and accelDelta > 0.5 and now - musicTimer > 0.4):
             #print "delta: " , accelDelta, "  rotDelta: " , rotDelta
             playNextFrame = True
             musicTimer = time.time()

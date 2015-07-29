@@ -17,11 +17,13 @@ address = 0x68       # This is the address value read via the i2cdetect command
 gyro_scale = 131.0
 accel_scale = 16384.0
 
+id = 0
+
 # complementary filter
 now = time.time()
-K = 0.87
+K = 0.99
 K1 = 1 - K
-time_diff = 0.15
+time_diff = 0.003
 last_x = 0.0
 last_y = 0.0
 last_z = 0.0
@@ -88,23 +90,19 @@ def initComplementaryFilter():
     gyro_total_y = last_y
     gyro_total_z = last_z
 
-
-id = 0
-class index:
-    def GET(self):
+def getValues():
         global id, now
 	#deltaTime = time.time() - now
         #print deltaTime
         #now = time.time()
 	#time_diff = deltaTime
-
+	
+        id += 1
+        if (id == 1):
+            initComplementaryFilter()
         
         global gyro_total_x, gyro_total_y, gyro_total_z, last_x, last_y, last_z
 
-        id += 1
-        if id == 1:
-            # init complementary filter
-            initComplementaryFilter()
 
         (gyro_scaled_x, gyro_scaled_y, gyro_scaled_z, accel_scaled_x, accel_scaled_y, accel_scaled_z) = read_all()
 
@@ -140,11 +138,3 @@ class index:
                 str(gyro_total_x)+" "+ str(gyro_total_y) +" "+ str(gyro_total_z) +" "+ \
                 str(accel_scaled_x) +" "+ str(accel_scaled_y) +" "+ str(accel_scaled_z) +" "+ \
                 str(gyro_delta_x)+" "+ str(gyro_delta_y) +" "+ str(gyro_delta_z) 
-
-
-if __name__ == "__main__":
-    # Now wake the 6050 up as it starts in sleep mode
-    bus.write_byte_data(address, power_mgmt_1, 0)
-
-    app = web.application(urls, globals())
-    app.run()
